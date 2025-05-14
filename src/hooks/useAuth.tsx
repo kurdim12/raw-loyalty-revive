@@ -1,7 +1,7 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import supabase from '../services/supabase';
 import { AuthState, LoginCredentials, SignupCredentials } from '../types/auth';
 
@@ -170,8 +170,7 @@ export const useAuth = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Login successful",
+      toast.success("Login successful", {
         description: "Welcome back!",
       });
 
@@ -180,10 +179,8 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Error logging in:', error);
       
-      toast({
-        title: "Login failed",
+      toast.error("Login failed", {
         description: error instanceof Error ? error.message : 'Invalid credentials',
-        variant: "destructive",
       });
       
       setState(prevState => ({
@@ -267,8 +264,7 @@ export const useAuth = () => {
         }
       }
 
-      toast({
-        title: "Sign up successful",
+      toast.success("Sign up successful", {
         description: "Your account has been created with 10 bonus points!",
       });
       
@@ -282,10 +278,8 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Error signing up:', error);
       
-      toast({
-        title: "Sign up failed",
+      toast.error("Sign up failed", {
         description: error instanceof Error ? error.message : 'Could not create account',
-        variant: "destructive",
       });
       
       setState(prevState => ({
@@ -307,8 +301,7 @@ export const useAuth = () => {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) throw error;
       
-      toast({
-        title: "Logged out",
+      toast.success("Logged out", {
         description: "You have been signed out successfully",
       });
       
@@ -326,10 +319,8 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Error logging out:', error);
       
-      toast({
-        title: "Logout failed",
+      toast.error("Logout failed", {
         description: error instanceof Error ? error.message : 'Could not log out properly',
-        variant: "destructive",
       });
       
       setState(prevState => ({
@@ -350,8 +341,7 @@ export const useAuth = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Password reset email sent",
+      toast.success("Password reset email sent", {
         description: "Check your email for a password reset link",
       });
       
@@ -364,10 +354,8 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Error resetting password:', error);
       
-      toast({
-        title: "Password reset failed",
+      toast.error("Password reset failed", {
         description: error instanceof Error ? error.message : 'Could not send reset email',
-        variant: "destructive",
       });
       
       setState(prevState => ({
@@ -378,6 +366,13 @@ export const useAuth = () => {
       return { success: false, error };
     }
   };
+
+  // Refresh user profile data
+  const refreshProfile = useCallback(async () => {
+    if (state.user) {
+      await fetchUserProfile(state.user.id);
+    }
+  }, [state.user]);
 
   // Redirect based on user role
   useEffect(() => {
@@ -400,7 +395,7 @@ export const useAuth = () => {
     signup,
     logout,
     resetPassword,
-    refreshProfile: () => state.user && fetchUserProfile(state.user.id),
+    refreshProfile
   };
 };
 

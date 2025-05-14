@@ -1,17 +1,38 @@
 
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Coffee, Gift, User, Users } from 'lucide-react';
+import { Coffee, Gift, User, Users, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 
 const Navigation = () => {
-  const { isAdmin } = useAuth();
+  const { user, profile, isAdmin, logout } = useAuth();
+
+  // Get the initials from the full name or email
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase();
+    }
+    return user?.email?.charAt(0).toUpperCase() || 'U';
+  };
 
   const navItems = [
     {
       title: 'Dashboard',
       path: '/dashboard',
-      icon: <Coffee className="h-5 w-5" />,
+      icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
       title: 'Rewards',
@@ -49,7 +70,31 @@ const Navigation = () => {
               <span>{item.title}</span>
             </NavLink>
           ))}
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              cn(
+                'flex items-center px-3 py-2 text-sm font-medium rounded-md',
+                isActive
+                  ? 'bg-coffee-mocha text-white'
+                  : 'text-coffee-dark hover:bg-coffee-latte hover:bg-opacity-70'
+              )
+            }
+          >
+            <span className="mr-1.5"><User className="h-5 w-5" /></span>
+            <span>Profile</span>
+          </NavLink>
         </div>
+        
+        {profile && (
+          <div className="md:flex items-center hidden">
+            <div className="flex items-center space-x-1">
+              <span className="text-xs font-medium">
+                {profile.points} pts • {profile.rank}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

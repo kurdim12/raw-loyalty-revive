@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Rewards from "./pages/Rewards";
+import Profile from "./pages/Profile"; // New profile page
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./routes/PrivateRoute";
@@ -49,6 +50,16 @@ const App = () => (
             element={
               <PrivateRoute>
                 <Rewards />
+              </PrivateRoute>
+            } 
+          />
+          
+          {/* Profile Page */}
+          <Route 
+            path="/profile" 
+            element={
+              <PrivateRoute>
+                <Profile />
               </PrivateRoute>
             } 
           />
