@@ -37,22 +37,23 @@ export const useProfile = (userId?: string) => {
       setLoading(true);
       setError(null);
 
-      // Properly initialize validUpdates with the correct type
-      const validUpdates: Partial<Profile> = {};
-      
-      // Safe fields that we know exist in our database
+      // Define the allowed keys for the profile updates
       const validKeys: Array<keyof Profile> = [
         'full_name', 'birthday', 'email',
         'points', 'lifetime_points', 'rank', 'rank_progress',
         'referral_code', 'referred_by'
       ];
       
-      validKeys.forEach(key => {
-        if (updates[key] !== undefined) {
-          // Ensure we're only adding defined keys that exist in updates
+      // Create properly typed validUpdates object
+      const validUpdates: Partial<Profile> = {};
+      
+      // Only copy over keys that exist in our validKeys array
+      for (const key of validKeys) {
+        if (updates.hasOwnProperty(key) && updates[key] !== undefined) {
+          // TypeScript now knows these are valid keys for Profile
           validUpdates[key] = updates[key];
         }
-      });
+      }
 
       const { data, error } = await supabase
         .from('profiles')
