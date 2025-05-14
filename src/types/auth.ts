@@ -1,15 +1,14 @@
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
 export interface SignupCredentials {
   email: string;
   password: string;
   full_name?: string;
-  referralCode?: string;
   birthday?: string;
+  referralCode?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
 }
 
 export interface AuthState {

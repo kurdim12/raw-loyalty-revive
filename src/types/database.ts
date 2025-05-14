@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -24,6 +23,7 @@ export interface Database {
           referred_by: string | null
           created_at: string
           updated_at: string
+          birthday: string | null
         }
         Insert: {
           id: string
@@ -38,6 +38,7 @@ export interface Database {
           referred_by?: string | null
           created_at?: string
           updated_at?: string
+          birthday?: string | null
         }
         Update: {
           id?: string
@@ -52,6 +53,7 @@ export interface Database {
           referred_by?: string | null
           created_at?: string
           updated_at?: string
+          birthday?: string | null
         }
       }
       transactions: {
