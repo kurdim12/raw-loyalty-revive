@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Phone, Mail, Award, Calendar, Cake, Gift } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import supabase from '@/services/supabase';
-import { format, differenceInDays, addYears, isSameDay } from 'date-fns';
+import { toast } from '@/components/ui/use-toast';
+import { format, differenceInDays } from 'date-fns';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -138,16 +137,7 @@ const Profile = () => {
                 <Phone className="h-4 w-4 text-coffee-mocha" />
                 <Label>Phone</Label>
               </div>
-              {editing ? (
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter your phone number"
-                  className="max-w-md"
-                />
-              ) : (
-                <div className="text-gray-700">{profile?.phone || 'Not set'}</div>
-              )}
+              <div className="text-gray-700">{profile?.phone || 'Not set'}</div>
             </div>
 
             {/* Birthday */}
