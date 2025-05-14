@@ -1,19 +1,38 @@
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { SignupCredentials } from '@/types/auth';
+import { useEffect, useState } from 'react';
 
 const SignupForm = () => {
   const { signup, loading, error } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [referralFromURL, setReferralFromURL] = useState<string | null>(null);
   
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupCredentials & { confirmPassword: string }>();
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<SignupCredentials & { confirmPassword: string }>();
+  
+  // Extract referral code from URL if present
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setReferralFromURL(ref);
+      setValue('referralCode', ref);
+    }
+  }, [location.search, setValue]);
   
   const onSubmit = async (data: SignupCredentials & { confirmPassword: string }) => {
     const { confirmPassword, ...signupData } = data;
+    
+    // Ensure referral code from URL is used if available
+    if (referralFromURL && !signupData.referralCode) {
+      signupData.referralCode = referralFromURL;
+    }
+    
     const { success } = await signup(signupData);
     
     if (success) {
@@ -107,14 +126,15 @@ const SignupForm = () => {
 
       <div>
         <label htmlFor="referralCode" className="block text-sm font-medium text-coffee-dark mb-1">
-          Referral Code (Optional)
+          Referral Code {referralFromURL && <span className="text-green-600">(Applied)</span>}
         </label>
         <Input
           id="referralCode"
           type="text"
           {...register('referralCode')}
-          className="w-full"
+          className={`w-full ${referralFromURL ? 'bg-green-50 border-green-200' : ''}`}
           placeholder="Enter referral code if you have one"
+          disabled={!!referralFromURL}
         />
       </div>
       

@@ -2,11 +2,16 @@
 import SignupForm from '@/components/auth/SignupForm';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const Signup = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  
+  // Check for referral in query params
+  const query = new URLSearchParams(location.search);
+  const hasReferral = query.has('ref');
 
   if (loading) {
     return (
@@ -23,7 +28,9 @@ const Signup = () => {
   return (
     <AuthLayout
       title="Create an Account"
-      subtitle="Join our rewards program and start earning points"
+      subtitle={hasReferral ? 
+        "Join with a referral and earn bonus points!" : 
+        "Join our rewards program and start earning points"}
     >
       <SignupForm />
     </AuthLayout>

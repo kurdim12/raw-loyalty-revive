@@ -201,19 +201,71 @@ export const useAuth = () => {
       // Clean up existing auth state
       cleanupAuthState();
       
+      console.log('Signing up with metadata:', { full_name, referralCode });
+      
       // Sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            full_name,
-            referral_code: referralCode
+            full_name: full_name || '',
+            referral_code: referralCode || null
           }
         }
       });
 
       if (error) throw error;
+
+      // After successful signup, verify if the profile was created
+      if (data?.user) {
+        // Wait a moment for the trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Check if profile exists
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        if (profileError || !profile) {
+          console.warn('Profile not created automatically, creating manually');
+          
+          // Generate a manual referral code
+          const manualCode = Math.random().toString(36).substring(2, 6).toUpperCase() + 
+                             Math.random().toString(36).substring(2, 6).toUpperCase();
+          
+          // Create profile manually as fallback
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: email,
+              full_name: full_name || '',
+              points: 10,
+              lifetime_points: 10,
+              rank: 'Bronze',
+              rank_progress: 0,
+              referral_code: manualCode,
+              referred_by: null
+            });
+          
+          if (insertError) {
+            console.error('Manual profile creation failed:', insertError);
+          } else {
+            // Create initial transaction
+            await supabase
+              .from('transactions')
+              .insert({
+                user_id: data.user.id,
+                type: 'bonus',
+                points: 10,
+                description: 'Welcome bonus'
+              });
+          }
+        }
+      }
 
       toast({
         title: "Sign up successful",
