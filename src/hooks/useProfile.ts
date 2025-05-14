@@ -49,9 +49,9 @@ export const useProfile = (userId?: string) => {
       
       // Only copy over keys that exist in our validKeys array
       for (const key of validKeys) {
-        if (updates.hasOwnProperty(key) && updates[key] !== undefined) {
-          // TypeScript now knows these are valid keys for Profile
-          validUpdates[key] = updates[key];
+        if (key in updates && updates[key] !== undefined) {
+          // This ensures we only copy valid keys with the correct type
+          validUpdates[key] = updates[key] as Profile[typeof key];
         }
       }
 
