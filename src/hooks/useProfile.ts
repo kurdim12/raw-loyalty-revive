@@ -44,14 +44,14 @@ export const useProfile = (userId?: string) => {
         'referral_code', 'referred_by'
       ];
       
-      // Create properly typed validUpdates object
+      // Create properly typed validUpdates object with initial type
       const validUpdates: Partial<Profile> = {};
       
       // Only copy over keys that exist in our validKeys array
       for (const key of validKeys) {
         if (key in updates && updates[key] !== undefined) {
-          // This ensures we only copy valid keys with the correct type
-          validUpdates[key] = updates[key] as Profile[typeof key];
+          // We need to assert the type here to match the specific profile key type
+          validUpdates[key] = updates[key] as any;
         }
       }
 
