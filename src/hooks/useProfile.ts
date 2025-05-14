@@ -37,9 +37,15 @@ export const useProfile = (userId?: string) => {
       setLoading(true);
       setError(null);
 
+      // Remove any fields that are not in the database schema
+      const validUpdates: Partial<Profile> = {};
+      if (updates.full_name !== undefined) validUpdates.full_name = updates.full_name;
+      if (updates.birthday !== undefined) validUpdates.birthday = updates.birthday;
+      // Add other valid fields as needed
+
       const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(validUpdates)
         .eq('id', userId)
         .select()
         .single();

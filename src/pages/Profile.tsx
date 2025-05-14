@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import useProfile from '@/hooks/useProfile';
@@ -8,16 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Phone, Mail, Award, Calendar, Cake, Gift } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import supabase from '@/services/supabase';
 import { format, differenceInDays, addYears, isSameDay } from 'date-fns';
 
 const Profile = () => {
   const { user, logout } = useAuth();
-  const { profile, isLoading, refetch } = useProfile(user?.id);
+  const { profile, isLoading, updateProfile, refetch } = useProfile(user?.id);
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
   const [birthday, setBirthday] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -25,7 +23,6 @@ const Profile = () => {
   useState(() => {
     if (profile) {
       setFullName(profile.full_name || '');
-      setPhone(profile.phone || '');
       setBirthday(profile.birthday || '');
     }
   });
@@ -35,16 +32,12 @@ const Profile = () => {
     
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          phone: phone,
-          birthday: birthday || null
-        })
-        .eq('id', user.id);
+      const result = await updateProfile({
+        full_name: fullName,
+        birthday: birthday || null
+      });
       
-      if (error) throw error;
+      if (!result.success) throw new Error(result.error);
       
       await refetch();
       toast.success('Profile updated successfully');
@@ -60,7 +53,6 @@ const Profile = () => {
   const startEditing = () => {
     if (profile) {
       setFullName(profile.full_name || '');
-      setPhone(profile.phone || '');
       setBirthday(profile.birthday || '');
     }
     setEditing(true);
