@@ -37,7 +37,7 @@ export const useProfile = (userId?: string) => {
       setLoading(true);
       setError(null);
 
-      // Only include fields that exist in the database schema
+      // Properly initialize validUpdates with the correct type
       const validUpdates: Partial<Profile> = {};
       
       // Safe fields that we know exist in our database
