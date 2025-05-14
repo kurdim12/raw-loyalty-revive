@@ -44,8 +44,44 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          birthday: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -59,6 +95,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          birthday?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -72,6 +109,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          birthday?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -242,6 +280,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_birthday_bonus: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_unique_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string

@@ -84,6 +84,21 @@ const SignupForm = () => {
       </div>
 
       <div>
+        <label htmlFor="birthday" className="block text-sm font-medium text-coffee-dark mb-1">
+          Birthday (Optional)
+        </label>
+        <Input
+          id="birthday"
+          type="date"
+          {...register('birthday')}
+          className="w-full"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          We'll send you a gift of 20 points on your birthday!
+        </p>
+      </div>
+
+      <div>
         <label htmlFor="password" className="block text-sm font-medium text-coffee-dark mb-1">
           Password
         </label>

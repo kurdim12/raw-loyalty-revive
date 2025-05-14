@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -191,14 +190,14 @@ export const useAuth = () => {
     }
   };
 
-  const signup = async ({ email, password, full_name, referralCode }: SignupCredentials) => {
+  const signup = async ({ email, password, full_name, referralCode, birthday }: SignupCredentials) => {
     try {
       setState(prevState => ({ ...prevState, loading: true, error: null }));
       
       // Clean up existing auth state
       cleanupAuthState();
       
-      console.log('Signing up with metadata:', { full_name, referralCode });
+      console.log('Signing up with metadata:', { full_name, referralCode, birthday });
       
       // Sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
@@ -207,7 +206,8 @@ export const useAuth = () => {
         options: {
           data: {
             full_name: full_name || '',
-            referral_code: referralCode || null
+            referral_code: referralCode || null,
+            birthday: birthday || null
           }
         }
       });
@@ -240,6 +240,7 @@ export const useAuth = () => {
               id: data.user.id,
               email: email,
               full_name: full_name || '',
+              birthday: birthday || null,
               points: 10,
               lifetime_points: 10,
               rank: 'Bronze',

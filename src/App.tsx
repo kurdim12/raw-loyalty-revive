@@ -9,7 +9,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Rewards from "./pages/Rewards";
-import Profile from "./pages/Profile"; // New profile page
+import Profile from "./pages/Profile";
+import Community from "./pages/Community"; // New community page
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./routes/PrivateRoute";
@@ -50,6 +51,16 @@ const App = () => (
             element={
               <PrivateRoute>
                 <Rewards />
+              </PrivateRoute>
+            } 
+          />
+          
+          {/* Community Page */}
+          <Route 
+            path="/community" 
+            element={
+              <PrivateRoute>
+                <Community />
               </PrivateRoute>
             } 
           />

@@ -1,100 +1,86 @@
 
-import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Coffee, Gift, User, Users, LayoutDashboard } from 'lucide-react';
+import { ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+  Home, 
+  Gift, 
+  User, 
+  Shield, 
+  Coffee,
+  MessageSquare
+} from 'lucide-react';
+
+interface NavItemProps {
+  to: string;
+  icon: ReactNode;
+  label: string;
+  active: boolean;
+}
+
+const NavItem = ({ to, icon, label, active }: NavItemProps) => (
+  <Link
+    to={to}
+    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+      active 
+        ? 'bg-coffee-espresso text-white' 
+        : 'text-coffee-dark hover:bg-coffee-cream'
+    }`}
+  >
+    {icon}
+    <span className="text-sm font-medium">{label}</span>
+  </Link>
+);
 
 const Navigation = () => {
-  const { user, profile, isAdmin, logout } = useAuth();
-
-  // Get the initials from the full name or email
-  const getInitials = () => {
-    if (profile?.full_name) {
-      return profile.full_name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase();
-    }
-    return user?.email?.charAt(0).toUpperCase() || 'U';
-  };
-
-  const navItems = [
-    {
-      title: 'Dashboard',
-      path: '/dashboard',
-      icon: <LayoutDashboard className="h-5 w-5" />,
-    },
-    {
-      title: 'Rewards',
-      path: '/rewards',
-      icon: <Gift className="h-5 w-5" />,
-    },
-  ];
-
-  if (isAdmin) {
-    navItems.push({
-      title: 'Admin',
-      path: '/admin',
-      icon: <Users className="h-5 w-5" />,
-    });
-  }
-
+  const { user, isAdmin } = useAuth();
+  const location = useLocation();
+  
+  if (!user) return null;
+  
+  const isActive = (path: string) => location.pathname === path;
+  
   return (
-    <nav className="bg-coffee-cream bg-opacity-50">
-      <div className="container flex justify-between items-center h-12">
-        <div className="flex items-center space-x-1 px-2 w-full md:justify-center">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center px-3 py-2 text-sm font-medium rounded-md',
-                  isActive
-                    ? 'bg-coffee-mocha text-white'
-                    : 'text-coffee-dark hover:bg-coffee-latte hover:bg-opacity-70'
-                )
-              }
-            >
-              <span className="mr-1.5">{item.icon}</span>
-              <span>{item.title}</span>
-            </NavLink>
-          ))}
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center px-3 py-2 text-sm font-medium rounded-md',
-                isActive
-                  ? 'bg-coffee-mocha text-white'
-                  : 'text-coffee-dark hover:bg-coffee-latte hover:bg-opacity-70'
-              )
-            }
-          >
-            <span className="mr-1.5"><User className="h-5 w-5" /></span>
-            <span>Profile</span>
-          </NavLink>
+    <nav className="bg-coffee-light border-b border-coffee-cream">
+      <div className="container px-4 mx-auto">
+        <div className="flex items-center space-x-1 md:space-x-4 py-2 overflow-x-auto">
+          <NavItem 
+            to="/dashboard" 
+            icon={<Home className="w-4 h-4" />} 
+            label="Dashboard" 
+            active={isActive('/dashboard')} 
+          />
+          
+          <NavItem 
+            to="/rewards" 
+            icon={<Gift className="w-4 h-4" />} 
+            label="Rewards" 
+            active={isActive('/rewards')} 
+          />
+          
+          <NavItem 
+            to="/community" 
+            icon={<MessageSquare className="w-4 h-4" />} 
+            label="Community" 
+            active={isActive('/community')} 
+          />
+          
+          <NavItem 
+            to="/profile" 
+            icon={<User className="w-4 h-4" />} 
+            label="Profile" 
+            active={isActive('/profile')} 
+          />
+          
+          {isAdmin && (
+            <NavItem 
+              to="/admin" 
+              icon={<Shield className="w-4 h-4" />} 
+              label="Admin" 
+              active={isActive('/admin')} 
+            />
+          )}
         </div>
-        
-        {profile && (
-          <div className="md:flex items-center hidden">
-            <div className="flex items-center space-x-1">
-              <span className="text-xs font-medium">
-                {profile.points} pts • {profile.rank}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );
