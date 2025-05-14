@@ -1,7 +1,18 @@
 
+import { useState } from 'react';
 import Layout from '@/components/shared/Layout';
+import AdminNavigation from '@/components/admin/AdminNavigation';
+import UserManagement from '@/components/admin/UserManagement';
+import TransactionManagement from '@/components/admin/TransactionManagement';
+import RewardManagement from '@/components/admin/RewardManagement';
+import SettingsManagement from '@/components/admin/SettingsManagement';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
+
+type AdminTab = 'users' | 'transactions' | 'rewards' | 'settings' | 'analytics';
 
 const Admin = () => {
+  const [activeTab, setActiveTab] = useState<AdminTab>('users');
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -9,15 +20,14 @@ const Admin = () => {
           <h1 className="text-3xl font-bold text-coffee-dark">Admin Dashboard</h1>
         </div>
 
-        <div className="bg-coffee-cream bg-opacity-30 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold text-coffee-dark mb-4">
-            Admin Panel Coming Soon
-          </h2>
-          <p className="text-coffee-mocha">
-            This is a placeholder for the admin panel. In the complete version, this area will include 
-            user management, transaction creation, reward management, settings, analytics, and 
-            community moderation.
-          </p>
+        <AdminNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+
+        <div className="bg-white rounded-lg p-6">
+          {activeTab === 'users' && <UserManagement />}
+          {activeTab === 'transactions' && <TransactionManagement />}
+          {activeTab === 'rewards' && <RewardManagement />}
+          {activeTab === 'settings' && <SettingsManagement />}
+          {activeTab === 'analytics' && <AnalyticsDashboard />}
         </div>
       </div>
     </Layout>

@@ -6,23 +6,36 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Gift } from 'lucide-react';
-import { toast } from 'sonner';
+
+interface NextRankInfo {
+  name: string;
+  discount: string;
+  pointsNeeded: number;
+}
 
 interface RewardsGridProps {
   rewards: Reward[];
   userPoints: number;
   onRedeemReward: (rewardId: string, pointsRequired: number) => Promise<{ success: boolean, error?: string }>;
+  onSavePoints: () => { success: boolean, error?: string };
   isLoading?: boolean;
+  nextRankInfo: NextRankInfo;
 }
 
-const RewardsGrid = ({ rewards, userPoints, onRedeemReward, isLoading = false }: RewardsGridProps) => {
+const RewardsGrid = ({ 
+  rewards, 
+  userPoints, 
+  onRedeemReward, 
+  onSavePoints,
+  isLoading = false,
+  nextRankInfo
+}: RewardsGridProps) => {
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleRedeemClick = (reward: Reward) => {
     if (userPoints < reward.points_required) {
-      toast.error('Not enough points to redeem this reward');
       return;
     }
     
@@ -38,13 +51,10 @@ const RewardsGrid = ({ rewards, userPoints, onRedeemReward, isLoading = false }:
       const result = await onRedeemReward(selectedReward.id, selectedReward.points_required);
       
       if (result.success) {
-        toast.success(`Successfully redeemed ${selectedReward.name}`);
         setShowConfirmDialog(false);
-      } else {
-        toast.error(result.error || 'Failed to redeem reward');
       }
     } catch (error) {
-      toast.error('An error occurred while redeeming');
+      // Error is handled in the onRedeemReward function
     } finally {
       setIsRedeeming(false);
     }
@@ -52,7 +62,7 @@ const RewardsGrid = ({ rewards, userPoints, onRedeemReward, isLoading = false }:
 
   const handleSaveForLater = () => {
     setShowConfirmDialog(false);
-    toast.info('Saving points for rank progression');
+    onSavePoints();
   };
 
   return (
@@ -103,26 +113,32 @@ const RewardsGrid = ({ rewards, userPoints, onRedeemReward, isLoading = false }:
         </div>
       )}
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog with Choice System */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Redemption</DialogTitle>
+            <DialogTitle>Make Your Choice</DialogTitle>
             <DialogDescription>
-              You're about to redeem {selectedReward?.name} for {selectedReward?.points_required} points.
+              You have two options for using your {selectedReward?.points_required} points.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            <p className="text-sm font-medium mb-2">You have two options:</p>
-            <ol className="space-y-2 text-sm">
-              <li className="p-2 border rounded-md bg-green-50 border-green-100">
-                <span className="font-bold block">Redeem Now</span>
-                <span className="text-sm text-gray-600">Use {selectedReward?.points_required} points for this reward</span>
+            <p className="text-sm font-medium mb-3">You have {userPoints} points available.</p>
+            <ol className="space-y-4 text-sm">
+              <li className="p-3 border rounded-md bg-green-50 border-green-100">
+                <span className="font-bold block text-base">Redeem Now</span>
+                <span className="text-sm text-gray-600 block mb-2">Use {selectedReward?.points_required} points for this reward</span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Immediate benefit
+                </span>
               </li>
-              <li className="p-2 border rounded-md bg-blue-50 border-blue-100">
-                <span className="font-bold block">Save for Rank Progress</span>
-                <span className="text-sm text-gray-600">Keep your points and progress towards next rank</span>
+              <li className="p-3 border rounded-md bg-blue-50 border-blue-100">
+                <span className="font-bold block text-base">Save for {nextRankInfo.name} Rank</span>
+                <span className="text-sm text-gray-600 block mb-2">Keep your points and get {nextRankInfo.discount} discount at {nextRankInfo.name} rank</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Need {nextRankInfo.pointsNeeded} more points for next rank
+                </span>
               </li>
             </ol>
           </div>

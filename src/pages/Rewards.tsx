@@ -1,18 +1,45 @@
 
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import useProfile from '@/hooks/useProfile';
 import useRewards from '@/hooks/useRewards';
 import Layout from '@/components/shared/Layout';
 import RewardsGrid from '@/components/user/RewardsGrid';
+import { toast } from 'sonner';
 
 const Rewards = () => {
   const { user } = useAuth();
   const { profile, refetch: refetchProfile } = useProfile(user?.id);
   const { rewards, isLoading: rewardsLoading, redeemReward } = useRewards(user?.id);
 
+  // Calculate rank info for choice modal
+  const getNextRank = () => {
+    if (!profile) return 'Silver';
+    return profile.rank === 'Bronze' ? 'Silver' : profile.rank === 'Silver' ? 'Gold' : 'Gold+';
+  };
+
+  const getRankDiscount = (rank: string) => {
+    switch (rank) {
+      case 'Bronze': return '10%';
+      case 'Silver': return '15%';
+      case 'Gold': return '25%';
+      default: return '0%';
+    }
+  };
+
+  const getPointsToNextRank = () => {
+    if (!profile) return 100;
+    
+    // These thresholds could come from settings in a more dynamic implementation
+    if (profile.rank === 'Bronze') return 100 - profile.lifetime_points;
+    if (profile.rank === 'Silver') return 300 - profile.lifetime_points;
+    return 0;
+  };
+
   const handleRedeemReward = async (rewardId: string, pointsRequired: number) => {
     // Check if user has enough points
     if (!profile || profile.points < pointsRequired) {
+      toast.error('Not enough points to redeem this reward');
       return { 
         success: false, 
         error: 'Not enough points to redeem this reward' 
@@ -24,9 +51,17 @@ const Rewards = () => {
     // Refresh profile to get updated points
     if (result.success) {
       await refetchProfile();
+      toast.success(`Reward redeemed successfully!`);
+    } else {
+      toast.error(result.error || 'Failed to redeem reward');
     }
     
     return result;
+  };
+
+  const handleSavePoints = () => {
+    toast.info(`Saving points for ${getNextRank()} rank progress (${getRankDiscount(getNextRank())} discount)`);
+    return { success: true };
   };
 
   return (
@@ -45,7 +80,13 @@ const Rewards = () => {
           rewards={rewards || []}
           userPoints={profile?.points || 0}
           onRedeemReward={handleRedeemReward}
+          onSavePoints={handleSavePoints}
           isLoading={rewardsLoading || !rewards}
+          nextRankInfo={{
+            name: getNextRank(),
+            discount: getRankDiscount(getNextRank()),
+            pointsNeeded: getPointsToNextRank()
+          }}
         />
       </div>
     </Layout>
