@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,30 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Coffee-themed colors
+				coffee: {
+					light: '#F5F1EA',     // Light cream
+					cream: '#E6DED1',     // Cream
+					latte: '#D0B49F',     // Light brown
+					mocha: '#A47551',     // Medium brown
+					espresso: '#634832',  // Dark brown
+					dark: '#362C28'       // Very dark brown
+				},
+				gold: {
+					light: '#FFF1BF',     // Light gold
+					DEFAULT: '#FFD700',   // Standard gold
+					dark: '#B7950B'       // Dark gold
+				},
+				silver: {
+					light: '#F1F1F3',     // Light silver
+					DEFAULT: '#C0C0C0',   // Standard silver
+					dark: '#8E8E93'       // Dark silver
+				},
+				bronze: {
+					light: '#FFE6D0',     // Light bronze
+					DEFAULT: '#CD7F32',   // Standard bronze
+					dark: '#955A16'       // Dark bronze
 				}
 			},
 			borderRadius: {
@@ -84,11 +109,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-slow': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},
