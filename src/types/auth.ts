@@ -1,21 +1,15 @@
 
+import { Session } from '@supabase/supabase-js';
+import { Profile } from './database';
+
 export interface AuthState {
   user: {
     id: string;
     email: string;
   } | null;
-  profile: {
-    id: string;
-    email: string;
-    full_name: string | null;
-    points: number;
-    lifetime_points: number;
-    rank: string;
-    rank_progress: number;
-    referral_code: string;
-  } | null;
+  profile: Profile | null;
   isAdmin: boolean;
-  session: any | null;
+  session: Session | null;
   loading: boolean;
   error: string | null;
 }
@@ -28,4 +22,8 @@ export interface LoginCredentials {
 export interface SignupCredentials extends LoginCredentials {
   full_name?: string;
   referralCode?: string;
+}
+
+export interface ResetPasswordCredentials {
+  email: string;
 }

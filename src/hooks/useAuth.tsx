@@ -1,8 +1,27 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "@/hooks/use-toast";
 import supabase from '../services/supabase';
 import { AuthState, LoginCredentials, SignupCredentials } from '../types/auth';
+
+// Helper function to clean up auth state
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -17,20 +36,22 @@ export const useAuth = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session) {
           setState(prevState => ({
             ...prevState,
             user: {
               id: session.user.id,
-              email: session.user.email || ''
+              email: session.user.email || '' // Handle potential undefined email
             },
             session,
             loading: true
           }));
 
-          // Fetch user profile
-          await fetchUserProfile(session.user.id);
+          // Defer fetching to avoid potential deadlocks
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
         } else {
           setState({
             user: null,
@@ -63,7 +84,7 @@ export const useAuth = () => {
           ...prevState,
           user: {
             id: session.user.id,
-            email: session.user.email || ''
+            email: session.user.email || '' // Handle potential undefined email
           },
           session,
         }));
@@ -100,7 +121,7 @@ export const useAuth = () => {
 
       if (error) throw error;
 
-      // Check if the user is an admin (you would need a settings table entry with admin emails)
+      // Check if the user is an admin
       const { data: adminSettings } = await supabase
         .from('settings')
         .select('value')
@@ -108,7 +129,7 @@ export const useAuth = () => {
         .single();
 
       const isAdmin = adminSettings?.value 
-        ? (adminSettings.value as string[]).includes(profile.email)
+        ? ((adminSettings.value as string[]).includes(profile.email))
         : false;
 
       setState(prevState => ({
@@ -132,16 +153,39 @@ export const useAuth = () => {
     try {
       setState(prevState => ({ ...prevState, loading: true, error: null }));
       
-      const { error } = await supabase.auth.signInWithPassword({
+      // Clean up existing auth state
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
 
-      // User will be set by the onAuthStateChange listener
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+
+      // User and session will be set by the onAuthStateChange listener
+      // Redirect will happen after profile is loaded
     } catch (error) {
       console.error('Error logging in:', error);
+      
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : 'Invalid credentials',
+        variant: "destructive",
+      });
+      
       setState(prevState => ({
         ...prevState,
         loading: false,
@@ -153,6 +197,9 @@ export const useAuth = () => {
   const signup = async ({ email, password, full_name, referralCode }: SignupCredentials) => {
     try {
       setState(prevState => ({ ...prevState, loading: true, error: null }));
+      
+      // Clean up existing auth state
+      cleanupAuthState();
       
       // Sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
@@ -168,7 +215,10 @@ export const useAuth = () => {
 
       if (error) throw error;
 
-      // Profile creation and referral handling is managed by the database trigger
+      toast({
+        title: "Sign up successful",
+        description: "Your account has been created with 10 bonus points!",
+      });
       
       setState(prevState => ({
         ...prevState,
@@ -179,6 +229,13 @@ export const useAuth = () => {
       return { success: true, data };
     } catch (error) {
       console.error('Error signing up:', error);
+      
+      toast({
+        title: "Sign up failed",
+        description: error instanceof Error ? error.message : 'Could not create account',
+        variant: "destructive",
+      });
+      
       setState(prevState => ({
         ...prevState,
         loading: false,
@@ -192,8 +249,16 @@ export const useAuth = () => {
     try {
       setState(prevState => ({ ...prevState, loading: true, error: null }));
       
-      const { error } = await supabase.auth.signOut();
+      // Clean up existing auth state
+      cleanupAuthState();
+      
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) throw error;
+      
+      toast({
+        title: "Logged out",
+        description: "You have been signed out successfully",
+      });
       
       setState({
         user: null,
@@ -204,9 +269,17 @@ export const useAuth = () => {
         error: null
       });
       
-      navigate('/login');
+      // Force page reload for a clean state
+      window.location.href = '/login';
     } catch (error) {
       console.error('Error logging out:', error);
+      
+      toast({
+        title: "Logout failed",
+        description: error instanceof Error ? error.message : 'Could not log out properly',
+        variant: "destructive",
+      });
+      
       setState(prevState => ({
         ...prevState,
         loading: false,
@@ -225,6 +298,11 @@ export const useAuth = () => {
       
       if (error) throw error;
       
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for a password reset link",
+      });
+      
       setState(prevState => ({
         ...prevState,
         loading: false,
@@ -233,6 +311,13 @@ export const useAuth = () => {
       return { success: true };
     } catch (error) {
       console.error('Error resetting password:', error);
+      
+      toast({
+        title: "Password reset failed",
+        description: error instanceof Error ? error.message : 'Could not send reset email',
+        variant: "destructive",
+      });
+      
       setState(prevState => ({
         ...prevState,
         loading: false,
@@ -242,6 +327,21 @@ export const useAuth = () => {
     }
   };
 
+  // Redirect based on user role
+  useEffect(() => {
+    if (!state.loading && state.user && state.profile) {
+      // Check if we're on login or signup page and redirect if needed
+      const currentPath = window.location.pathname;
+      if (currentPath === '/login' || currentPath === '/signup') {
+        if (state.isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    }
+  }, [state.loading, state.user, state.profile, state.isAdmin, navigate]);
+  
   return {
     ...state,
     login,
