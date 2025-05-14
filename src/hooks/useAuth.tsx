@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../services/supabase';
 import { AuthState, LoginCredentials, SignupCredentials } from '../types/auth';
-import { User, Session } from '@supabase/supabase-js';
 
 export const useAuth = () => {
   const navigate = useNavigate();

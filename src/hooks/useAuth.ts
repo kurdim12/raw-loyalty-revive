@@ -21,7 +21,10 @@ export const useAuth = () => {
         if (session) {
           setState(prevState => ({
             ...prevState,
-            user: session.user,
+            user: {
+              id: session.user.id,
+              email: session.user.email || ''
+            },
             session,
             loading: true
           }));
@@ -58,7 +61,10 @@ export const useAuth = () => {
       if (session) {
         setState(prevState => ({
           ...prevState,
-          user: session.user,
+          user: {
+            id: session.user.id,
+            email: session.user.email || ''
+          },
           session,
         }));
         
