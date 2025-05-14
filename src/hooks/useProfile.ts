@@ -37,11 +37,21 @@ export const useProfile = (userId?: string) => {
       setLoading(true);
       setError(null);
 
-      // Remove any fields that are not in the database schema
+      // Only include fields that exist in the database schema
       const validUpdates: Partial<Profile> = {};
-      if (updates.full_name !== undefined) validUpdates.full_name = updates.full_name;
-      if (updates.birthday !== undefined) validUpdates.birthday = updates.birthday;
-      // Add other valid fields as needed
+      
+      // Safe fields that we know exist in our database
+      const validKeys: Array<keyof Profile> = [
+        'full_name', 'birthday', 'email', 'phone',
+        'points', 'lifetime_points', 'rank', 'rank_progress',
+        'referral_code', 'referred_by'
+      ];
+      
+      validKeys.forEach(key => {
+        if (updates[key] !== undefined) {
+          validUpdates[key] = updates[key];
+        }
+      });
 
       const { data, error } = await supabase
         .from('profiles')
