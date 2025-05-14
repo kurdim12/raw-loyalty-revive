@@ -42,13 +42,14 @@ export const useProfile = (userId?: string) => {
       
       // Safe fields that we know exist in our database
       const validKeys: Array<keyof Profile> = [
-        'full_name', 'birthday', 'email', 'phone',
+        'full_name', 'birthday', 'email',
         'points', 'lifetime_points', 'rank', 'rank_progress',
         'referral_code', 'referred_by'
       ];
       
       validKeys.forEach(key => {
         if (updates[key] !== undefined) {
+          // Ensure we're only adding defined keys that exist in updates
           validUpdates[key] = updates[key];
         }
       });
