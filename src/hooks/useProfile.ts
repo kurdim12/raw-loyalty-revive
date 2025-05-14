@@ -41,19 +41,16 @@ export const useProfile = (userId?: string) => {
       const validKeys: Array<keyof Profile> = [
         'full_name', 'birthday', 'email',
         'points', 'lifetime_points', 'rank', 'rank_progress',
-        'referral_code', 'referred_by'
+        'referral_code', 'referred_by', 'phone'
       ];
       
-      // Create properly typed validUpdates object with initial type
-      const validUpdates: Partial<Profile> = {};
-      
-      // Only copy over keys that exist in our validKeys array
-      for (const key of validKeys) {
-        if (key in updates && updates[key] !== undefined) {
-          // We need to assert the type here to match the specific profile key type
-          validUpdates[key] = updates[key] as any;
+      // Create a properly typed updates object by filtering only valid keys
+      const validUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
+        if (validKeys.includes(key as keyof Profile) && value !== undefined) {
+          return { ...acc, [key]: value };
         }
-      }
+        return acc;
+      }, {} as Partial<Profile>);
 
       const { data, error } = await supabase
         .from('profiles')
