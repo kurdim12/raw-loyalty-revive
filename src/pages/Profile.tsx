@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Phone, Mail, Award, Calendar } from 'lucide-react';
+import { User, Phone, Mail, Award, Calendar, Cake, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import supabase from '@/services/supabase';
-import { format } from 'date-fns';
+import { format, differenceInDays, addYears, isSameDay } from 'date-fns';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -18,6 +18,7 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [birthday, setBirthday] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // Initialize form fields when profile loads
@@ -25,6 +26,7 @@ const Profile = () => {
     if (profile) {
       setFullName(profile.full_name || '');
       setPhone(profile.phone || '');
+      setBirthday(profile.birthday || '');
     }
   });
 
@@ -37,7 +39,8 @@ const Profile = () => {
         .from('profiles')
         .update({
           full_name: fullName,
-          phone: phone
+          phone: phone,
+          birthday: birthday || null
         })
         .eq('id', user.id);
       
@@ -58,9 +61,47 @@ const Profile = () => {
     if (profile) {
       setFullName(profile.full_name || '');
       setPhone(profile.phone || '');
+      setBirthday(profile.birthday || '');
     }
     setEditing(true);
   };
+
+  const formatBirthday = (dateString) => {
+    if (!dateString) return 'Not set';
+    try {
+      return format(new Date(dateString), 'MMMM d');
+    } catch (e) {
+      return 'Invalid date';
+    }
+  };
+
+  const getDaysUntilBirthday = () => {
+    if (!profile?.birthday) return null;
+    
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const birthday = new Date(profile.birthday);
+    birthday.setFullYear(currentYear);
+    
+    // If birthday has passed this year, calculate for next year
+    if (birthday < today) {
+      birthday.setFullYear(currentYear + 1);
+    }
+    
+    return differenceInDays(birthday, today);
+  };
+
+  const isBirthdayToday = () => {
+    if (!profile?.birthday) return false;
+    
+    const today = new Date();
+    const birthDate = new Date(profile.birthday);
+    return today.getMonth() === birthDate.getMonth() && 
+           today.getDate() === birthDate.getDate();
+  };
+
+  const daysUntilBirthday = getDaysUntilBirthday();
+  const birthdayToday = isBirthdayToday();
 
   return (
     <Layout loading={isLoading && !profile}>
@@ -116,6 +157,42 @@ const Profile = () => {
                 <div className="text-gray-700">{profile?.phone || 'Not set'}</div>
               )}
             </div>
+
+            {/* Birthday */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2">
+              <div className="flex items-center gap-2 min-w-[160px] pt-2">
+                <Cake className="h-4 w-4 text-coffee-mocha" />
+                <Label>Birthday</Label>
+              </div>
+              {editing ? (
+                <div className="space-y-1 max-w-md w-full">
+                  <Input
+                    type="date"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    className="max-w-md"
+                  />
+                  <p className="text-xs text-gray-500 pl-1">
+                    Get 20 bonus points on your birthday each year!
+                  </p>
+                </div>
+              ) : (
+                <div className="text-gray-700">
+                  <div>{formatBirthday(profile?.birthday)}</div>
+                  {profile?.birthday && (
+                    <p className="text-sm text-coffee-mocha mt-1 flex items-center">
+                      <Gift className="h-3 w-3 mr-1" />
+                      {birthdayToday 
+                        ? 'Happy Birthday! You received 20 points! 🎉'
+                        : daysUntilBirthday === 1
+                        ? 'Tomorrow is your birthday! Get ready for 20 bonus points!'
+                        : `${daysUntilBirthday} days until your birthday (20 bonus points!)`
+                      }
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
         
@@ -147,6 +224,22 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+        
+        {!profile?.birthday && !editing && (
+          <Card className="mb-6 bg-amber-50 border-amber-200">
+            <CardContent className="p-4">
+              <div className="flex">
+                <Gift className="h-5 w-5 text-coffee-espresso mr-3 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-coffee-espresso">Birthday Bonus Available!</h4>
+                  <p className="text-sm text-coffee-mocha mt-1">
+                    Add your birthday to receive 20 bonus points every year on your special day.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <div className="flex justify-between">
           {editing ? (
